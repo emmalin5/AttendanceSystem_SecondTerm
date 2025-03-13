@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto p-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-blue-600">Students</h1>
+      <button
+        id="addStudentBtn"
+        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+        Add Student
+      </button>
+    </div>
+    <!-- Students Table -->
+    <div class="bg-white shadow-lg rounded-lg overflow-scroll ">
+      <table id="studentsTable" class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Email
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Phone Number
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Major
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              GPA
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody id="studentsTableBody">
+          <!-- Rows will be dynamically populated here -->
+        </tbody>
+      </table>
+    </div>
+    <!-- Student Modal -->
+    <div
+      id="studentModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">
+            {{ isEditMode ? "Edit Student" : "Add Student" }}
+          </h2>
+          <button
+            id="cancelModalBtn"
+            class="text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form id="studentForm" class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required />
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required />
+          </div>
+          <div>
+            <label for="phone_number" class="block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <input
+              type="text"
+              id="phone_number"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required />
+          </div>
+          <div>
+            <label for="course_id" class="block text-sm font-medium text-gray-700">
+              Course
+            </label>
+            <select
+              id="course_id"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required>
+              <!-- Options will be dynamically populated here -->
+            </select>
+          </div>
+          <div>
+            <label for="major" class="block text-sm font-medium text-gray-700">
+              Major
+            </label>
+            <select
+              id="major"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required>
+              <option value="">-- Select Major --</option>
+              <option value="Embedded Systems">Embedded Systems</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Knowledge Engineering">Knowledge Engineering</option>
+            </select>
+          </div>
+          <div>
+            <label for="advisor_id" class="block text-sm font-medium text-gray-700">
+              Advisor
+            </label>
+            <select
+              id="advisor_id"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required>
+              <!-- Options will be dynamically populated here -->
+            </select>
+          </div>
+          <div>
+            <label for="gpa" class="block text-sm font-medium text-gray-700">
+              GPA
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              id="gpa"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+          </div>
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              id="status"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Graduated">Graduated</option>
+            </select>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button
+              id="cancelModalBtn"
+              type="button"
+              class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-300">
+              Cancel
+            </button>
+            <button
+              id="saveStudentBtn"
+              type="button"
+              class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Details Modal -->
+   <div
+      id="detailsModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white w-full max-w-4xl p-6 rounded-lg shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="detailsModalTitle" class="text-2xl font-bold text-gray-800">Student Details</h2>
+          <button
+            id="closeDetailsModalBtn"
+            class="text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div id="studentDetailsContent" class="space-y-4">
+          <!-- Student details will be dynamically populated here -->
+         </div>
+      </div>
+    </div> 
+
+
+
+    <!-- Content -->
+    <div id="studentDetailsContent" class="space-y-6">
+      <!-- Content will be dynamically populated here -->
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end mt-6">
+      <button id="closeDetailsModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-300">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      const API_URL_STUDENTS = "http://192.168.1.7:3000/api/students";
+      const API_URL_COURSES = "http://192.168.1.7:3000/api/courses";
+      const API_URL_TEACHERS = "http://192.168.1.7:3000/api/teachers";
+      const API_URL_ATTENDANCE = "http://192.168.1.7:3000/api/attendance";
+      //const API_URL_FINGERPRINT = "http://192.168.1.7:3000/api/fingerprints";
+      let students = [];
+      let courses = [];
+      let teachers = [];
+      let currentStudent = {};
+      let isEditMode = false;
+
+      // Load courses on page load
+      loadCourses();
+      // Load teachers on page load
+      loadTeachers();
+      // Load students on page load
+      loadStudents();
+
+      // Load courses
+      function loadCourses() {
+        $.ajax({
+          url: API_URL_COURSES,
+          method: "GET",
+          success: function (data) {
+            courses = data;
+            populateCourseDropdown();
+          },
+          error: function (xhr, status, error) {
+            console.error("Error fetching courses:", error);
+            alert("Failed to fetch courses.");
+          },
+        });
+      }
+
+      // Populate course dropdown
+      function populateCourseDropdown() {
+        const courseSelect = $("#course_id");
+        courseSelect.empty();
+        courseSelect.append($("<option></option>").attr("value", "").text("-- Select Course --"));
+        courses.forEach((course) => {
+          courseSelect.append(
+            $("<option></option>")
+              .attr("value", course._id)
+              .text(course.name)
+          );
+        });
+        new TomSelect("#course_id", {
+          create: false,
+          maxItems: 1,
+          plugins: ["remove_button"],
+        });
+      }
+
+      // Load teachers
+      function loadTeachers() {
+        $.ajax({
+          url: API_URL_TEACHERS,
+          method: "GET",
+          success: function (data) {
+            teachers = data;
+            populateAdvisorDropdown();
+          },
+          error: function (xhr, status, error) {
+            console.error("Error fetching teachers:", error);
+            alert("Failed to fetch teachers.");
+          },
+        });
+      }
+
+      // Populate advisor dropdown
+      function populateAdvisorDropdown() {
+        const advisorSelect = $("#advisor_id");
+        advisorSelect.empty();
+        advisorSelect.append($("<option></option>").attr("value", "").text("-- Select Advisor --"));
+        teachers.forEach((teacher) => {
+          advisorSelect.append(
+            $("<option></option>")
+              .attr("value", teacher._id)
+              .text(teacher.name)
+          );
+        });
+        new TomSelect("#advisor_id", {
+          create: false,
+          maxItems: 1,
+          plugins: ["remove_button"],
+        });
+      }
+
+      // Load students
+      function loadStudents() {
+        $.ajax({
+          url: API_URL_STUDENTS,
+          method: "GET",
+          success: function (data) {
+            students = data;
+            renderTable();
+          },
+          error: function (xhr, status, error) {
+            console.error("Error fetching students:", error);
+            alert("Failed to fetch students.");
+          },
+        });
+      }
+
+      // Render table
+      function renderTable() {
+        const tbody = $("#studentsTableBody");
+        tbody.empty();
+        students.forEach((student) => {
+          const courseName =
+            courses.find((c) => c._id === student.course_id)?.name || "Unassigned";
+          const advisorName =
+            teachers.find((t) => t._id === student.advisor_id)?.name || "Unassigned";
+
+          // Format fingerprint status
+          const fingerprintStatus = student.fingerprintStatus
+            ? '<span class="text-green-500">Registered</span>'
+            : `<a href="http://127.0.0.1:5500/Backend/frontend/fingerprint.html?studentId=${student._id}" class="text-blue-500 hover:underline">Not Registered</a>`;
+
+          tbody.append(`
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">${student.name}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${student.email}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${student.phone_number}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${student.major || "Unassigned"}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${student.gpa || "N/A"}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${student.status}</td>
+              <td class="px-6 py-4 whitespace-nowrap space-x-2">
+                <button onclick="editStudent('${student._id}')"
+                  class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded-lg shadow-sm transition duration-300">
+                  Edit
+                </button>
+                <button onclick="deleteStudent('${student._id}')"
+                  class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-2 rounded-lg shadow-sm transition duration-300">
+                  Delete
+                </button>
+                <button onclick="viewDetails('${student._id}')"
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded-lg shadow-sm transition duration-300">
+                  Details
+                </button>
+              </td>
+            </tr>
+          `);
+        });
+      }
+
+      // View student details
+      window.viewDetails = async function (id) {
+        try {
+          // Fetch student details
+          const studentResponse = await $.ajax({
+            url: `${API_URL_STUDENTS}/${id}?populate=fingerprintId`,
+            method: "GET",
+          });
+
+          const student = studentResponse;
+
+          // Fetch attendance data
+          const attendanceResponse = await $.ajax({
+            url: `${API_URL_ATTENDANCE}?studentId=${id}`,
+            method: "GET",
+            success: function (data) {
+              const attendance = data;
+
+              // Format fingerprint status
+              const fingerprintStatus = student.fingerprintStatus
+                ? `<a href="http://127.0.0.1:5500/Backend/frontend/biometric.html?studentId=${student._id}" class="text-green-500 hover:underline">Registered</a>`
+                : `<a href="http://127.0.0.1:5500/Backend/frontend/biometric.html?studentId=${student._id}" class="text-red-500 hover:underline">Not Registered</a>`;
+
+              // Populate the modal content
+              $("#studentDetailsContent").html(`
+                <div>
+                  <p><strong>Name:</strong> ${student.name}</p>
+                  <p><strong>Email:</strong> ${student.email}</p>
+                  <p><strong>Phone Number:</strong> ${student.phone_number}</p>
+                  <p><strong>Major:</strong> ${student.major || "Unassigned"}</p>
+                  <p><strong>GPA:</strong> ${student.gpa || "N/A"}</p>
+                  <p><strong>Status:</strong> ${student.status}</p>
+                  <p><strong>Fingerprint Status:</strong> ${fingerprintStatus}</p>
+                  <p><strong>Course:</strong> ${
+                    courses.find((c) => c._id === student.course_id)?.name || "Unassigned"
+                  }</p>
+                  <p><strong>Advisor:</strong> ${
+                    teachers.find((t) => t._id === student.advisor_id)?.name || "Unassigned"
+                  }</p>
+                  <p><strong>Attendance:</strong></p>
+                </div>
+              `);
+
+              // Show the modal
+              $("#detailsModal").removeClass("hidden");
+            },
+            error: function (xhr, status, error) {
+              console.error("Error fetching attendance:", error);
+              alert("Failed to fetch attendance.");
+            },
+          });
+        } catch (error) {
+          console.error("Error fetching student details:", error);
+          alert("Failed to load student details.");
+        }
+      };
+
+      // Close details modal
+      $("#closeDetailsModalBtn").click(function () {
+        $("#detailsModal").addClass("hidden");
+      });
+
+      // Add student button
+      $("#addStudentBtn").click(function () {
+        isEditMode = false;
+        currentStudent = {};
+        $("#modalTitle").text("Add Student");
+        $("#studentForm")[0].reset();
+        $("#studentModal").removeClass("hidden");
+        // Ensure advisor dropdown is populated before opening the modal
+        if (!teachers.length) {
+          alert("Teachers data is not available yet. Please wait and try again.");
+          return;
+        }
+        populateAdvisorDropdown();
+      });
+
+      // Save student
+      $("#saveStudentBtn").click(function () {
+        const studentData = {
+          name: $("#name").val(),
+          email: $("#email").val(),
+          phone_number: $("#phone_number").val(),
+          course_id: $("#course_id").val(),
+          major: $("#major").val(),
+          advisor_id: $("#advisor_id").val(),
+          gpa: parseFloat($("#gpa").val()),
+          status: $("#status").val(),
+        };
+        const url = isEditMode
+          ? `${API_URL_STUDENTS}/${currentStudent._id}`
+          : API_URL_STUDENTS;
+        const method = isEditMode ? "PUT" : "POST";
+        $.ajax({
+          url: url,
+          method: method,
+          contentType: "application/json",
+          data: JSON.stringify(studentData),
+          success: function (data) {
+            if (isEditMode) {
+              const index = students.findIndex((s) => s._id === data._id);
+              students[index] = data;
+            } else {
+              students.push(data);
+            }
+            $("#studentModal").addClass("hidden");
+            loadStudents();
+          },
+          error: function (xhr, status, error) {
+            alert("Error: " + xhr.responseJSON?.error || "Unknown error");
+          },
+        });
+      });
+
+      // Cancel modal
+      $("#cancelModalBtn").click(function () {
+        $("#studentModal").addClass("hidden");
+      });
+
+      // Edit student
+      window.editStudent = function (id) {
+        isEditMode = true;
+        currentStudent = students.find((s) => s._id === id);
+        $("#modalTitle").text("Edit Student");
+        $("#name").val(currentStudent.name);
+        $("#email").val(currentStudent.email);
+        $("#phone_number").val(currentStudent.phone_number);
+        $("#course_id").val(currentStudent.course_id);
+        $("#major").val(currentStudent.major);
+        $("#advisor_id").val(currentStudent.advisor_id);
+        $("#gpa").val(currentStudent.gpa);
+        $("#status").val(currentStudent.status);
+        // Ensure advisor dropdown is populated before opening the modal
+        if (!teachers.length) {
+          alert("Teachers data is not available yet. Please wait and try again.");
+          return;
+        }
+        $("#studentModal").removeClass("hidden");
+      };
+
+      // Delete student
+      window.deleteStudent = function (id) {
+        if (confirm("Are you sure you want to delete this student?")) {
+          $.ajax({
+            url: `${API_URL_STUDENTS}/${id}`,
+            method: "DELETE",
+            success: function () {
+              students = students.filter((s) => s._id !== id);
+              loadStudents();
+            },
+            error: function (xhr, status, error) {
+              alert("Error: " + xhr.responseJSON?.error || "Unknown error");
+            },
+          });
+        }
+      };
+    });
+  </script>
+</body>
+</html>

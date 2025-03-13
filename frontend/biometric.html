@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fingerprint Enrollment</title>
+  <!-- Include Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md text-center">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Fingerprint Enrollment</h1>
+    <input
+      type="text"
+      id="studentId"
+      placeholder="Enter Student ID"
+      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mb-4"
+      required
+    />
+    <button
+      onclick="startFingerprintScan()"
+      class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+    >
+      Start Scan
+    </button>
+    <div id="responseMessage" class="mt-4 text-sm"></div>
+  </div>
+
+  <script>
+    // Function to get query parameters from the URL
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  // Get the studentId from the URL
+  const studentId = getQueryParam('studentId');
+
+  if (studentId) {
+    // Populate the studentId input field
+    document.getElementById('studentId').value = studentId;
+  } else {
+    // If no studentId is provided, show an error message
+    const responseMessage = document.getElementById('responseMessage');
+    responseMessage.textContent = 'No Student ID provided. Please go back and try again.';
+    responseMessage.className = 'text-red-500';
+  }
+
+    // Function to start the fingerprint scan
+    async function startFingerprintScan() {
+      const studentId = document.getElementById('studentId').value.trim();
+      const responseMessage = document.getElementById('responseMessage');
+
+      // Clear previous messages
+      responseMessage.textContent = '';
+      responseMessage.className = '';
+
+      if (!studentId) {
+        responseMessage.textContent = 'Please enter a valid Student ID.';
+        responseMessage.className = 'text-red-500';
+        return;
+      }
+
+      try {
+        // Call the backend API to enroll the fingerprint
+        const response = await fetch('http://192.168.1.7:3000/api/biometric/enroll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId }),
+        });
+
+        const result = await response.json();
+        console.log("Backend : ", result);
+
+        if (result.message) {
+          responseMessage.textContent = result.message; // Show the message from the backend
+          responseMessage.className = 'text-green-500'; // Set success message style
+        } else {
+          responseMessage.textContent = 'Unexpected response from the server.';
+          responseMessage.className = 'text-red-500'; // Set error message style
+        }
+      } catch (error) {
+
+        responseMessage.textContent = 'Failed to connect to the server. Please try again later.';
+        responseMessage.className = 'text-red-500';
+        console.error('Error during fingerprint enrollment:', error);
+      }
+    }
+  </script>
+</body>
+</html>
