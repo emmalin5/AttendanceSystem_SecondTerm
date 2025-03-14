@@ -1,4 +1,5 @@
-const CourseSubject = require('../models/courseSubject');
+const CourseSubject = require('../models/CourseSubject');
+
 
 // Create a relationship
 exports.createCourseSubject = async (data) => {
@@ -54,4 +55,21 @@ exports.deleteCourseSubject = async (id) => {
   } catch (error) {
     throw new Error('Failed to delete relationship');
   }
+};
+
+async function checkCourseSubjectExists(course_id, subject_id) {
+  try {
+    const courseSubject = await CourseSubject.findOne({
+      course_id,
+      subject_id
+    });
+    if (!courseSubject) throw new Error('CourseSubject not found.');
+    return courseSubject;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+module.exports = {
+  checkCourseSubjectExists,
 };

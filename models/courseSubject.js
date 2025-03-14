@@ -29,8 +29,11 @@ const CourseSubjectSchema = new mongoose.Schema(
     collection: 'course_subjects' // Explicitly name the collection
   }
 );
-
-// Index to prevent duplicate relationships
 CourseSubjectSchema.index({ course_id: 1, subject_id: 1, semester: 1, year: 1 }, { unique: true });
 
-module.exports = mongoose.model('CourseSubject', CourseSubjectSchema);
+if (mongoose.models.CourseSubject) {
+  module.exports = mongoose.model('CourseSubject');
+} else {
+  module.exports = mongoose.model('CourseSubject', CourseSubjectSchema);
+}
+// Index to prevent duplicate relationships

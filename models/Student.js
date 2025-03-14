@@ -16,7 +16,7 @@ const StudentSchema = new mongoose.Schema(
     nationality: { type: String },
     gpa: { type: Number, default: 0 },
     status: { type: String, default: 'Active' }, // e.g., "Active", "Inactive", "Graduated"
-    advisor_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', requierd:false },
+    advisor_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required:false },
     emergency_contact_name: { type: String },
     emergency_contact_phone: { type: String },
     profile_picture_url: { type: String },

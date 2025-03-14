@@ -8,7 +8,7 @@ const FingerprintSchema = new mongoose.Schema({
   fingerprintId: {
     type: String,
     required: true,
-    unique: false, // Ensure uniqueness for fingerprint identifiers
+    unique: true,
   },
   createdAt: {
     type: Date,
