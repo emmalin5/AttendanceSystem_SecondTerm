@@ -14,6 +14,7 @@ const SubjectSchema = new mongoose.Schema(
     status: { type: String, default: 'Active' },
     description: { type: String, default: '' },
     notes: { type: String, default: '' },
+    
   },
   { timestamps: true }
 );

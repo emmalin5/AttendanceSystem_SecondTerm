@@ -3,323 +3,270 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Class Management</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <title>Class Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-100">
-  <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6">Class Management</h1>
-
-    <!-- Add Class Button -->
-    <button onclick="openModal()" 
-            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-6">
-      Add Class
-    </button>
-
+<body class="bg-gray-100 min-h-screen p-4">
+  <div x-data="app()" class="container mx-auto p-4">
+    <!-- Create/Update Modal -->
+    <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+          <h2 class="text-2xl font-semibold mb-4" x-text="isEditing ? 'Edit Class' : 'Create Class'"></h2>
+          <form @submit.prevent="saveClass">
+            <!-- Subject Dropdown -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Subject</label>
+              <select v-model="formData.subject" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+                <option value="">Select Subject</option>
+                <template x-for="subject in subjects" :key="subject.id">
+                  <option :value="subject._id" x-text="subject.name"></option>
+                </template>
+              </select>
+            </div>
+            <!-- Teacher Dropdown -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Teacher</label>
+              <select v-model="formData.teacher" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+                <option value="">Select Teacher</option>
+                <template x-for="teacher in teachers" :key="teacher.id">
+                  <option :value="teacher._id" x-text="teacher.name"></option>
+                </template>
+              </select>
+            </div>
+            <!-- Room Dropdown -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Room</label>
+              <select v-model="formData.room" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+                <option value="">Select Room</option>
+                <template x-for="room in rooms" :key="room.id">
+                  <option :value="room._id" x-text="room.name"></option>
+                </template>
+              </select>
+            </div>
+            <!-- Date & Time Fields -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Start Date</label>
+              <input v-model="formData.start_date" type="date" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+            </div>
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">End Date</label>
+              <input v-model="formData.end_date" type="date" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+            </div>
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Start Time</label>
+              <input v-model="formData.start_time" type="time" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+            </div>
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">End Time</label>
+              <input v-model="formData.end_time" type="time" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+            </div>
+            <!-- Days of Week -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Days of Week</label>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']">
+                  <label class="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      :value="day" 
+                      v-model="formData.days_of_week"
+                      class="form-checkbox h-5 w-5 text-blue-500"
+                    >
+                    <span x-text="day"></span>
+                  </label>
+                </template>
+              </div>
+            </div>
+            <!-- Class Type -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Class Type</label>
+              <select v-model="formData.class_type" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+                <option value="">Select Type</option>
+                <option value="Lecture">Lecture</option>
+                <option value="Lab">Lab</option>
+                <option value="Seminar">Seminar</option>
+                <option value="Workshop">Workshop</option>
+              </select>
+            </div>
+            <!-- Capacity -->
+            <div class="mb-4">
+              <label class="block text-gray-700 mb-2">Max Capacity</label>
+              <input v-model.number="formData.max_capacity" type="number" min="1" class="w-full px-3 py-2 border rounded focus:border-blue-500">
+            </div>
+            <!-- Actions -->
+            <div class="flex justify-end">
+              <button @click="showModal = false" class="px-4 py-2 mr-2 bg-red-500 text-white rounded hover:bg-red-600">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <span x-text="isEditing ? 'Update' : 'Create'"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Main Content -->
+    <div class="flex justify-between mb-4">
+      <h1 class="text-3xl font-bold">Class Schedule</h1>
+      <button @click="showModal = true" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">New Class</button>
+    </div>
     <!-- Class List -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4">Classes List</h2>
-      <table class="w-full">
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white border border-gray-300">
         <thead>
-          <tr>
-            <th class="border p-2">Name</th>
-            <th class="border p-2">Room Number</th>
-            <th class="border p-2">Schedule</th>
-            <th class="border p-2">Students</th>
-            <th class="border p-2">Actions</th>
+          <tr class="bg-gray-50">
+            <th class="px-4 py-3 text-left">Subject</th>
+            <th class="px-4 py-3 text-left">Teacher</th>
+            <th class="px-4 py-3 text-left">Room</th>
+            <th class="px-4 py-3 text-left">Start Date</th>
+            <th class="px-4 py-3 text-left">End Date</th>
+            <th class="px-4 py-3 text-left">Days</th>
+            <th class="px-4 py-3 text-left">Actions</th>
           </tr>
         </thead>
-        <tbody id="classTable">
-          <!-- Rows will be populated here -->
+        <tbody>
+          <template x-for="class in classes" :key="class.id">
+            <tr class="border-b">
+              <td class="px-4 py-3" x-text="class.subject.name"></td>
+              <td class="px-4 py-3" x-text="class.teacher.name"></td>
+              <td class="px-4 py-3" x-text="class.room.name"></td>
+              <td class="px-4 py-3" x-text="class.start_date"></td>
+              <td class="px-4 py-3" x-text="class.end_date"></td>
+              <td class="px-4 py-3" x-text="class.days_of_week.join(', ')"></td>
+              <td class="px-4 py-3">
+                <button @click="editClass(class)" class="px-2 py-1 mr-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</button>
+                <button @click="deleteClass(class._id)" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
-
-    <!-- Add/Edit Modal -->
-    <div id="classModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center pb-3">
-          <h3 class="text-lg font-bold" id="modalTitle">Add Class</h3>
-          <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">×</button>
-        </div>
-        <form id="classForm">
-          <input type="hidden" id="classId">
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Class Name <span class="text-red-500">*</span></label>
-            <input type="text" id="className" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Enter class name">
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Room Number <span class="text-red-500">*</span></label>
-            <input type="text" id="roomNumber" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase" required placeholder="ROOM-101">
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Schedule <span class="text-red-500">*</span></label>
-            <div id="scheduleContainer">
-              <!-- Schedule rows will be added here dynamically -->
-            </div>
-            <button type="button" onclick="addScheduleRow()" 
-                    class="mt-2 text-blue-500 hover:text-blue-700">
-              + Add Schedule Entry
-            </button>
-          </div>
-          <div class="flex justify-end">
-            <button type="button" onclick="closeModal()" 
-                    class="mr-2 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
-            </button>
-            <button type="submit" id="saveButton"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div class="relative top-40 mx-auto p-5 border w-72 shadow-lg rounded-md bg-white text-center">
-        <h3 class="text-lg font-bold mb-4">Confirm Delete</h3>
-        <p>Are you sure you want to delete this class?</p>
-        <div class="flex justify-center mt-4">
-          <button onclick="closeDeleteModal()" 
-                  class="mr-2 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">
-            Cancel
-          </button>
-          <button onclick="confirmDelete()" 
-                  class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
-
   <script>
-    const API_BASE_URL = 'http://192.167.1.7:3000/api/classes';
-    const SUBJECT_API_URL = 'https://192.167.1.7:3000/api/subjects';
-    let currentDeleteId = null;
-    let allSubjects = [];
-
-    $(document).ready(function () {
-      loadClasses();
-      loadSubjects();
-    });
-
-    // Load subjects for dropdown
-    async function loadSubjects() {
-      try {
-        allSubjects = await $.get(SUBJECT_API_URL);
-      } catch (err) {
-        console.error(err);
-        alert('Error loading subjects. Please refresh.');
-      }
-    }
-
-    // CRUD Operations
-    async function loadClasses() {
-      try {
-        const data = await $.get(API_BASE_URL);
-        $('#classTable').empty();
-        if (data.length === 0) {
-          $('#classTable').append(`
-            <tr>
-              <td colspan="5" class="border p-2 text-center">No classes found</td>
-            </tr>
-          `);
-        } else {
-          data.forEach(cls => {
-            const scheduleHtml = cls.schedule.map(entry => {
-              const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-              return `
-                <div class="mb-1">
-                  ${days[entry.dayOfWeek]} 
-                  ${entry.startTime}-${entry.endTime} 
-                  (${entry.subject.name})
-                </div>
-              `;
-            }).join('');
-
-            $('#classTable').append(`
-              <tr>
-                <td class="border p-2">${cls.name}</td>
-                <td class="border p-2">${cls.roomNumber}</td>
-                <td class="border p-2">${scheduleHtml}</td>
-                <td class="border p-2 text-center">${cls.studentCount}</td>
-                <td class="border p-2">
-                  <button onclick="editClass('${cls._id}')" 
-                          class="bg-yellow-500 text-white px-2 py-1 rounded mr-2">
-                    Edit
-                  </button>
-                  <button onclick="openDeleteModal('${cls._id}')" 
-                          class="bg-red-500 text-white px-2 py-1 rounded">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            `);
-          });
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('app', () => ({
+        // Data properties
+        subjects: [],
+        teachers: [],
+        rooms: [],
+        classes: [],
+        showModal: false,
+        isEditing: false,
+        formData: {
+          subject: '',
+          teacher: '',
+          room: '',
+          start_date: '',
+          end_date: '',
+          days_of_week: [],
+          start_time: '',
+          end_time: '',
+          class_type: '',
+          max_capacity: 1
+        },
+        // API URLs (replace with your backend URLs)
+        API_BASE: 'http://192.168.1.3:3000/api',
+        CLASS_API: '/classes',
+        SUBJECT_API: '/subjects',
+        TEACHER_API: '/teachers',
+        ROOM_API: '/rooms',
+        // Initialize data
+        init() {
+          this.fetchSubjects();
+          this.fetchTeachers();
+          this.fetchRooms();
+          this.fetchClasses();
+        },
+        // Fetch subjects
+        async fetchSubjects() {
+          try {
+            const response = await fetch(`${this.API_BASE}${this.SUBJECT_API}`);
+            this.subjects = await response.json();
+            console.log('Fetched Subjects:', this.subjects);
+          } catch (error) {
+            console.error('Error fetching subjects:', error);
+          }
+        },
+        // Fetch teachers
+        async fetchTeachers() {
+          try {
+            const response = await fetch(`${this.API_BASE}${this.TEACHER_API}`);
+            this.teachers = await response.json();
+            console.log('Fetched Teachers:', this.teachers);
+          } catch (error) {
+            console.error('Error fetching teachers:', error);
+          }
+        },
+        // Fetch rooms
+        async fetchRooms() {
+          try {
+            const response = await fetch(`${this.API_BASE}${this.ROOM_API}`);
+            this.rooms = await response.json();
+            console.log('Fetched Rooms:', this.rooms);
+          } catch (error) {
+            console.error('Error fetching rooms:', error);
+          }
+        },
+        // Fetch classes
+        async fetchClasses() {
+          try {
+            const response = await fetch(`${this.API_BASE}${this.CLASS_API}`);
+            this.classes = await response.json();
+            console.log('Fetched Classes:', this.classes);
+          } catch (error) {
+            console.error('Error fetching classes:', error);
+          }
+        },
+        // Save class (create/update)
+        async saveClass() {
+          try {
+            const method = this.isEditing ? 'PUT' : 'POST';
+            const url = this.isEditing 
+              ? `${this.API_BASE}${this.CLASS_API}/${this.formData._id}`
+              : `${this.API_BASE}${this.CLASS_API}`;
+            const response = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.formData)
+            });
+            if (response.ok) {
+              this.showModal = false;
+              this.isEditing = false;
+              this.formData = {
+                subject: '',
+                teacher: '',
+                room: '',
+                start_date: '',
+                end_date: '',
+                days_of_week: [],
+                start_time: '',
+                end_time: '',
+                class_type: '',
+                max_capacity: 1
+              };
+              this.fetchClasses();
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
+        },
+        // Edit class
+        editClass(classData) {
+          this.formData = { ...classData };
+          this.isEditing = true;
+          this.showModal = true;
+        },
+        // Delete class
+        async deleteClass(id) {
+          if (confirm('Are you sure?')) {
+            const response = await fetch(`${this.API_BASE}${this.CLASS_API}/${id}`, { method: 'DELETE' });
+            if (response.ok) this.fetchClasses();
+          }
         }
-      } catch (err) {
-        console.error(err);
-        alert('Error loading classes. Please try again.');
-      }
-    }
-
-    // Add schedule row with subject dropdown
-    function addScheduleRow(entry = {}) {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const row = `
-        <div class="schedule-row mb-2 p-2 border rounded flex justify-between items-center">
-          <div class="w-1/4 mr-2">
-            <select class="w-full px-2 py-1 border rounded dayOfWeek" required>
-              ${days.map((day, index) => `
-                <option value="${index}" ${entry.dayOfWeek === index ? 'selected' : ''}>
-                  ${day}
-                </option>
-              `).join('')}
-            </select>
-          </div>
-          <div class="w-1/4 mr-2">
-            <input type="time" class="w-full px-2 py-1 border rounded startTime" 
-                   value="${entry.startTime || '09:00'}" required>
-          </div>
-          <div class="w-1/4 mr-2">
-            <input type="time" class="w-full px-2 py-1 border rounded endTime" 
-                   value="${entry.endTime || '10:00'}" required>
-          </div>
-          <div class="w-1/4 mr-2">
-            <select class="w-full px-2 py-1 border rounded subject" required>
-              ${allSubjects.map(subject => `
-                <option value="${subject._id}" 
-                        ${entry.subject && entry.subject._id === subject._id ? 'selected' : ''}>
-                  ${subject.name} (${subject.code})
-                </option>
-              `).join('')}
-            </select>
-          </div>
-          <button type="button" onclick="$(this).parent().remove()" 
-                  class="bg-red-500 text-white px-2 py-1 rounded">
-            ×
-          </button>
-        </div>
-      `;
-      $('#scheduleContainer').append(row);
-    }
-
-    // Form Submission
-    $('#classForm').submit(async function (e) {
-      e.preventDefault();
-      showLoading();
-
-      // Collect schedule data
-      const schedule = [];
-      $('#scheduleContainer .schedule-row').each(function() {
-        const dayOfWeek = parseInt($(this).find('.dayOfWeek').val());
-        const startTime = $(this).find('.startTime').val();
-        const endTime = $(this).find('.endTime').val();
-        const subject = $(this).find('.subject').val();
-        
-        schedule.push({ dayOfWeek, startTime, endTime, subject });
-      });
-
-      const classData = {
-        name: $('#className').val(),
-        roomNumber: $('#roomNumber').val().toUpperCase(),
-        schedule: schedule
-      };
-
-      const id = $('#classId').val();
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `${API_BASE_URL}/${id}` : API_BASE_URL;
-
-      try {
-        await $.ajax({
-          url: url,
-          method: method,
-          contentType: 'application/json',
-          data: JSON.stringify(classData)
-        });
-        closeModal();
-        loadClasses();
-        alert(`${id ? 'Updated' : 'Added'} class successfully!`);
-      } catch (err) {
-        console.error(err);
-        alert(`Error: ${err.responseText || 'Something went wrong'}`);
-      } finally {
-        hideLoading();
-      }
+      }));
     });
-
-    // Edit Class
-    async function editClass(id) {
-      try {
-        const data = await $.get(`${API_BASE_URL}/${id}`);
-        $('#classId').val(data._id);
-        $('#className').val(data.name);
-        $('#roomNumber').val(data.roomNumber); // Populate room number
-
-        // Populate schedule rows
-        $('#scheduleContainer').empty();
-        data.schedule.forEach(entry => addScheduleRow(entry));
-
-        $('#modalTitle').text('Edit Class');
-        $('#classModal').removeClass('hidden');
-      } catch (err) {
-        console.error(err);
-        alert('Error fetching class details. Please try again.');
-      }
-    }
-
-    // Delete Class
-    async function confirmDelete() {
-      try {
-        await $.ajax({
-          url: `${API_BASE_URL}/${currentDeleteId}`,
-          method: 'DELETE'
-        });
-        closeDeleteModal();
-        loadClasses();
-        alert('Class deleted successfully!');
-      } catch (err) {
-        console.error(err);
-        alert(`Error: ${err.responseText || 'Something went wrong'}`);
-      }
-    }
-
-    // Modal Functions
-    function openModal() {
-      $('#classModal').removeClass('hidden');
-      $('#modalTitle').text('Add Class');
-      $('#classForm')[0].reset();
-      $('#classId').val('');
-      $('#scheduleContainer').empty();
-      addScheduleRow(); // Add default row
-    }
-
-    function closeModal() {
-      $('#classModal').addClass('hidden');
-    }
-
-    function openDeleteModal(id) {
-      currentDeleteId = id;
-      $('#deleteModal').removeClass('hidden');
-    }
-
-    function closeDeleteModal() {
-      currentDeleteId = null;
-      $('#deleteModal').addClass('hidden');
-    }
-
-    // Loading State
-    function showLoading() {
-      $('#saveButton').text('Saving...').prop('disabled', true);
-    }
-
-    function hideLoading() {
-      $('#saveButton').text('Save').prop('disabled', false);
-    }
   </script>
 </body>
 </html>
