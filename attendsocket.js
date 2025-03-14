@@ -1,52 +1,41 @@
-const WebSocket = require('ws');
 const mongoose = require('mongoose');
-const getTestData = require('./services/test');
+const connectDB = require('./config/db'); // Import the connectDB function
+const Fingerprint = require('./models/Fingerprint'); // Import the Fingerprint model
 
-const attendanceService = require('./services/attendanceService'); // Import attendance service
+// Function to check if fingerprintId exists in the database
+async function checkFingerprintExists(fingerprintId) {
+  try {
+    // Query the database for the fingerprintId
+    const fingerprint = await Fingerprint.findOne({ fingerprintId });
 
-// Create a WebSocket server on the specified IP and port
-const wss = new WebSocket.Server({ host: '192.168.1.7', port: 3001 });
+    if (fingerprint) {
+      console.log(`Fingerprint ID ${fingerprintId} exists in the database.`);
+      return true; // ID exists
+    } else {
+      console.log(`Fingerprint ID ${fingerprintId} does not exist in the database.`);
+      return false; // ID does not exist
+    }
+  } catch (error) {
+    console.error('Error while checking fingerprint existence:', error.message);
+    return false;
+  }
+}
 
-console.log('WebSocket server is running on ws://192.168.1.7:3001');
+// Main function to connect to the database and check the fingerprintId
+(async () => {
+  try {
+    // Connect to MongoDB
+    await connectDB();
 
-wss.on('connection', (ws) => {
-    console.log('A new client connected.');
+    const fingerprintIdToCheck = 'FP-12345';
 
-    // Send a welcome message to the client
-    ws.send('Welcome to the WebSocket server!');
-
-    // Listen for messages from the client
-    ws.on('message', async (message) => {
-        console.log(`Received message: ${message}`);
-
-        try {
-            // Parse the incoming message
-            const data = JSON.parse(message);
-            fingerprint = data.fingerprint_id;
-            console.log("Message: ", data.message); 
-            const testData = getTestData(fingerprint);
-            console.log("Test Data Response",testData);
-
-            // Call the createAttendance function with the parsed data
-            const student = await attendanceService.createAttendance(fingerprint);
-            console.log("Student: ", student);
-            // Send a success response to the client
-            ws.send(JSON.stringify({ status: 'success', data: student }));
-        } catch (error) {
-            // Send an error response to the client
-            ws.send(JSON.stringify({ status: 'error', message: error.message }));
-        }
-
-        // Broadcast the message to all connected clients (optional)
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(`Broadcast: ${message}`);
-            }
-        });
-    });
-
-    // Handle client disconnection
-    ws.on('close', () => {
-        console.log('A client disconnected.');
-    });
-});
+    // Check if the fingerprintId exists
+    const check = await checkFingerprintExists(fingerprintIdToCheck);
+    console.log("The data is in check:", check); // Logs true or false
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  } finally {
+    // Close the database connection after the operation
+    mongoose.connection.close();
+  }
+})();

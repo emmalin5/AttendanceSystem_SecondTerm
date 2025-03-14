@@ -105,7 +105,7 @@ async function simulateFingerprintScan(studentId) {
 }
 
 // Start the server
-server.listen(PORT, '192.168.1.7', () => {
-  console.log(`Server is running at http://192.168.1.7:${PORT}`);
-  console.log(`WebSocket server is listening on ws://192.168.1.7:${PORT}`);
+server.listen(PORT, '192.168.1.3', () => {
+  console.log(`Server is running at http://192.168.1.3:${PORT}`);
+  console.log(`WebSocket server is listening on ws://192.168.1.3:${PORT}`);
 });

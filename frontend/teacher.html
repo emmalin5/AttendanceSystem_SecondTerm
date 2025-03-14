@@ -11,7 +11,7 @@
   <div class="container mx-auto p-4">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Teacher</h1>
+      <h1 class="text-3xl font-bold text-blue-600">Teacher Management</h1>
       <button
         id="addTeacherBtn"
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
@@ -38,8 +38,10 @@
     </div>
 
     <!-- Add/Edit Teacher Modal -->
-    <div id="teacherModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-      <div class="bg-white  rounded-lg p-6 w-11/12 md:w-1/2 max-h-[90vh] overflow-y-auto ">
+    <div id="teacherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <!-- <div class="bg-white  rounded p-6 w-11/12 md:w-1/2 max-h-[90vh] overflow-y-auto "> -->
+        <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+
         <h2 id="modalTitle" class="text-xl font-bold mb-4">Add Teacher</h2>
         <form id="teacherForm" class="space-y-4">
           <input type="hidden" id="teacherId" />
@@ -155,7 +157,7 @@
 
   <script>
     $(document).ready(function () {
-      const API_URL = "http://localhost:4000/api/teachers";
+      const API_URL = "http://192.168.1.7:3000/api/teachers";
       let teachers = [];
       let currentTeacher = {};
       let isEditMode = false;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Class Management</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
   <div class="container mx-auto p-4">
@@ -97,8 +97,8 @@
   </div>
 
   <script>
-    const API_BASE_URL = 'http://localhost:4000/api/classes';
-    const SUBJECT_API_URL = 'http://localhost:4000/api/subjects';
+    const API_BASE_URL = 'http://192.167.1.7:3000/api/classes';
+    const SUBJECT_API_URL = 'https://192.167.1.7:3000/api/subjects';
     let currentDeleteId = null;
     let allSubjects = [];
 

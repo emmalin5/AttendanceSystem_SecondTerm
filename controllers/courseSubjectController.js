@@ -3,6 +3,7 @@ const courseSubjectService = require('../services/coursesubjectService');
 // Create a course-subject relationship
 exports.createCourseSubject = async (req, res) => {
   try {
+    console.log(req.body);
     const courseSubject = await courseSubjectService.createCourseSubject(req.body);
     res.status(201).json(courseSubject);
   } catch (error) {

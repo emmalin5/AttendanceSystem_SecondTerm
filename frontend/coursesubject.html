@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course-Subject Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto p-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-blue-600">Course-Subject Management</h1>
+      <button
+        id="addCourseSubjectBtn"
+        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Add Relationship
+      </button>
+    </div>
+    <!-- Relationships Table -->
+    <div id="content" class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table id="courseSubjectTable" class="w-full">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2">Course</th>
+            <th class="px-4 py-2">Subjects</th>
+            <th class="px-4 py-2">Semester</th>
+            <th class="px-4 py-2">Year</th>
+            <th class="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be populated here -->
+        </tbody>
+      </table>
+    </div>
+    <!-- Add/Edit Relationship Modal -->
+    <div id="courseSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-lg p-6 w-11/12 md:w-1/2 max-h-[90vh] overflow-y-auto">
+        <h2 id="modalTitle" class="text-xl font-bold mb-4">Add Relationship</h2>
+        <form id="courseSubjectForm" class="space-y-4">
+          <input type="hidden" id="relationshipId" />
+          <div>
+            <label for="course" class="block text-sm font-medium text-gray-700">Select Course</label>
+            <select id="course" name="course" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+              <option value="" disabled selected>Select a Course</option>
+            </select>
+          </div>
+          <div>
+            <label for="subjects" class="block text-sm font-medium text-gray-700">Select Subjects</label>
+            <select id="subjects" name="subjects" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+              <option value="" disabled>Select Subjects</option>
+            </select>
+          </div>
+          <div>
+            <label for="semester" class="block text-sm font-medium text-gray-700">Semester</label>
+            <input type="text" id="semester" placeholder="Enter Semester (e.g., Fall 2023)"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+          </div>
+          <div>
+            <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
+            <input type="number" id="year" placeholder="Enter Year (e.g., 2023)"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+          </div>
+          <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea id="notes" placeholder="Enter Additional Notes"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button id="cancelModalBtn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+            <button id="saveCourseSubjectBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      const API_URL = "http://192.168.1.3:3000/api/course-subjects"; // API endpoint for course-subject relationships
+      const COURSE_API_URL = "http://192.168.1.3:3000/api/courses"; // API endpoint for courses
+      const SUBJECT_API_URL = "http://192.168.1.3:3000/api/subjects"; // API endpoint for subjects
+      let relationships = [];
+      let courses = [];
+      let subjects = [];
+      let isEditMode = false;
+
+      // Fetch courses and populate the dropdown
+      async function fetchCourses() {
+        try {
+          const response = await $.get(COURSE_API_URL);
+          courses = response;
+          const courseDropdown = $("#course");
+          courses.forEach((course) => {
+            courseDropdown.append(`<option value="${course._id}">${course.name}</option>`);
+          });
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+        }
+      }
+
+      // Fetch subjects and populate the multi-select dropdown
+      async function fetchSubjects() {
+        try {
+          const response = await $.get(SUBJECT_API_URL);
+          subjects = response;
+          const subjectDropdown = $("#subjects");
+          subjects.forEach((subject) => {
+            subjectDropdown.append(`<option value="${subject._id}">${subject.name}</option>`);
+          });
+        } catch (error) {
+          console.error("Error fetching subjects:", error);
+        }
+      }
+
+      // Load all relationships
+      async function loadRelationships() {
+        try {
+          const response = await $.get(API_URL);
+          relationships = response;
+          renderTable();
+        } catch (error) {
+          console.error("Error fetching relationships:", error);
+        }
+      }
+
+      // Render table
+      function renderTable() {
+        const tbody = $("#courseSubjectTable tbody");
+        tbody.empty();
+        relationships.forEach((relationship) => {
+          tbody.append(`
+            <tr class="border-t">
+              <td class="px-4 py-2">${relationship.course_id.name}</td>
+              <td class="px-4 py-2">
+                ${relationship.subject_ids.map((subjectId) => subjects.find((s) => s._id === subjectId)?.name).join(", ")}
+              </td>
+              <td class="px-4 py-2">${relationship.semester || "-"}</td>
+              <td class="px-4 py-2">${relationship.year || "-"}</td>
+              <td class="px-4 py-2 space-x-2">
+                <button onclick="editRelationship('${relationship._id}')"
+                  class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+                  Edit
+                </button>
+                <button onclick="deleteRelationship('${relationship._id}')"
+                  class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `);
+        });
+      }
+
+      // Add relationship button click
+      $("#addCourseSubjectBtn").click(function () {
+        isEditMode = false;
+        currentRelationship = {};
+        $("#modalTitle").text("Add Relationship");
+        $("#courseSubjectForm")[0].reset();
+        $("#courseSubjectModal").removeClass("hidden");
+      });
+
+      // Save relationship
+      $("#saveCourseSubjectBtn").click(async function () {
+        const courseId = $("#course").val();
+        const selectedSubjectIds = $("#subjects").val();
+        const semester = $("#semester").val();
+        const year = $("#year").val();
+        const notes = $("#notes").val();
+
+        if (!courseId || selectedSubjectIds.length === 0) {
+          alert("Please select a course and at least one subject.");
+          return;
+        }
+
+        const relationshipData = {
+          course_id: courseId,
+          subject_ids: selectedSubjectIds,
+          semester: semester,
+          year: year,
+          notes: notes,
+        };
+
+        const url = isEditMode ? `${API_URL}/${currentRelationship._id}` : API_URL;
+        const method = isEditMode ? "PUT" : "POST";
+
+        try {
+          const response = await $.ajax({
+            url: url,
+            method: method,
+            contentType: "application/json",
+            data: JSON.stringify(relationshipData),
+            success: function (data) {
+              if (isEditMode) {
+                const index = relationships.findIndex((r) => r._id === data._id);
+                relationships[index] = data;
+              } else {
+                relationships.push(data);
+              }
+              $("#courseSubjectModal").addClass("hidden");
+              loadRelationships();
+            },
+            error: function (error) {
+              alert("Error: " + error.responseJSON?.error || "Unknown error");
+            },
+          });
+        } catch (error) {
+          console.error("Error creating relationship:", error);
+        }
+      });
+
+      // Cancel modal
+      $("#cancelModalBtn").click(function () {
+        $("#courseSubjectModal").addClass("hidden");
+      });
+
+      // Edit relationship
+      window.editRelationship = function (id) {
+        isEditMode = true;
+        currentRelationship = relationships.find((r) => r._id === id);
+        $("#modalTitle").text("Edit Relationship");
+        $("#relationshipId").val(currentRelationship._id);
+        $("#course").val(currentRelationship.course_id._id);
+        $("#semester").val(currentRelationship.semester);
+        $("#year").val(currentRelationship.year);
+        $("#notes").val(currentRelationship.notes);
+        $("#subjects")[0].selectedIndex = 0; // Clear previous selections
+        currentRelationship.subject_ids.forEach((subjectId) => {
+          const option = subjects.find((s) => s._id === subjectId);
+          if (option) {
+            $(`#subjects option[value="${subjectId}"]`).prop("selected", true);
+          }
+        });
+        $("#courseSubjectModal").removeClass("hidden");
+      };
+
+      // Delete relationship
+      window.deleteRelationship = function (id) {
+        if (confirm("Are you sure you want to delete this relationship?")) {
+          $.ajax({
+            url: `${API_URL}/${id}`,
+            method: "DELETE",
+            success: function () {
+              relationships = relationships.filter((r) => r._id !== id);
+              loadRelationships();
+            },
+            error: function (error) {
+              alert("Error: " + error.responseJSON?.error || "Unknown error");
+            },
+          });
+        }
+      };
+
+      // Initialize the form
+      fetchCourses();
+      fetchSubjects();
+      loadRelationships();
+    });
+  </script>
+</body>
+</html>
