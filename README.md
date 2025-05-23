@@ -1,12 +1,6 @@
-[![Emmaline Mai](https://images.openai.com/thumbnails/869351c2e32bc5ea805359cc1a0d8c7e.jpeg)](https://emmaline01.github.io/)
+# Fingerprint_AttendanceSystem
 
-Based on the available information from the GitHub repository [emmalin5/AttendanceSystem\_SecondTerm](https://github.com/emmalin5/AttendanceSystem_SecondTerm), here's a suggested `README.md` file to help you document and present your project effectively:
-
----
-
-# AttendanceSystem\_SecondTerm
-
-A web-based attendance management system designed for educational institutions. This project facilitates efficient tracking of student attendance through a user-friendly interface and robust backend services.
+A web-based attendance management system designed for educational institutions. This project facilitates efficient tracking of student attendance using ESP 32 through a user-friendly interface and robust backend services.
 
 ## Features
 
